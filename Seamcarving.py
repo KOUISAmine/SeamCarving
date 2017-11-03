@@ -4,6 +4,9 @@ from math import *
 import numpy as np
 
 
+
+
+
 class Traitement:
     # les champs de la class :
     # private img : l'image
