@@ -29,7 +29,30 @@ class Traitement:
         return np.transpose(M).tolist()
 
 
-
+	def remove_seam(img, minIndex, sOfIJ):
+		rows = img.shape[0]
+		columns = img.shape[1]
+		removed_matrix = np.zeros(shape=(rows, columns - 1, 3))
+		k = minIndex
+		# backtracking from last row to first row
+		for i in range(rows - 1, -1, -1):
+			b = img[i, :, :]  # taking one by one row from img matrix
+			# deleting kth position in a row
+			removed_matrix[i, :, :] = np.delete(b, k, axis=0)
+			if i != 0:
+				if k == 1:
+					if sOfIJ[i - 1, k + 1] < sOfIJ[i - 1, k]:
+						k = k + 1
+				elif k == columns - 2:
+					if sOfIJ[i - 1, k - 1] < sOfIJ[i - 1, k]:
+						k = k - 1
+				else:
+					if sOfIJ[i - 1, k - 1] < sOfIJ[i - 1, k] and sOfIJ[i - 1, k - 1] < sOfIJ[i - 1, k + 1]:
+						k = k - 1
+					elif sOfIJ[i - 1, k + 1] < sOfIJ[i - 1, k] and sOfIJ[i - 1, k + 1] < sOfIJ[i - 1, k - 1]:
+						k = k + 1
+		return removed_matrix
+		pass
 
     def getimg(self):
         return self.__img
