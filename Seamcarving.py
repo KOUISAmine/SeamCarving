@@ -29,6 +29,29 @@ class Traitement:
         return np.transpose(M).tolist()
 
 
+		def dual_gradient_energy(img):
+    R = img[:, :, 0]
+    G = img[:, :, 1]
+    B = img[:, :, 2]
+
+    hR = filter.hsobel(R)
+    hG = filter.hsobel(G)
+    hB = filter.hsobel(B)
+
+    vR = filter.vsobel(R)
+    vG = filter.vsobel(G)
+    vB = filter.vsobel(B)
+
+    sumRG = np.add(np.square(hR), np.square(hG))
+    x_square = np.add(sumRG, np.square(hB))
+
+    sumRGv = np.add(np.square(vR), np.square(vG))
+    y_square = np.add(sumRGv, np.square(vB))
+
+    energy = np.add(x_square, y_square)
+    return energy
+		
+		
 	def remove_seam(img, minIndex, sOfIJ):
 		rows = img.shape[0]
 		columns = img.shape[1]
