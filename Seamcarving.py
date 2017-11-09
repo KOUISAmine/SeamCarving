@@ -4,6 +4,7 @@ from skimage import img_as_float
 from skimage import filter
 from math import *
 import numpy as np
+global q
 
 class Traitement:
     # les champs de la class :
