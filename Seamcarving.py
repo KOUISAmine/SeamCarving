@@ -108,8 +108,7 @@ class Traitement:
 
 
 
-if __name__ == "__main__":
-    t=Traitement()
-    t.seam()
+if __name__ == '__main__':
+    main()
 
 
