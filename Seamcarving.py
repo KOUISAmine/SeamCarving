@@ -99,6 +99,13 @@ class Traitement:
 
 
     def seam(self):
+	    img = imread('givenImg.png')
+		img = img_as_float(img)
+		subplot(1, 3, 1)
+		imshow(imread('givenImg.png'))
+		title('Given')
+		figure()
+		gray()
         self.get_image()
         tab = self.energy()
         path = self.chemin(tab)
