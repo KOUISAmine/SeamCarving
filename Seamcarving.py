@@ -93,10 +93,6 @@ class Traitement:
             res.append([xmin,i])
         return res
 
-    def colpath(self,tab):
-        for i,j in tab:
-            self.__img.putpixel((i, j),0)
-
 
     def seam(self):
 	    img = imread('givenImg.png')
