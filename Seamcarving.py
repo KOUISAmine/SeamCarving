@@ -94,6 +94,31 @@ class Traitement:
             res.append([xmin,i])
         return res
 
+		def plot_seam(img, minIndex, sOfIJ):
+    rows = img.shape[0]
+    columns = img.shape[1]
+    k = minIndex
+    sOfIJ[rows - 1, k] = 100
+    # backtracking from last row to first row
+    for i in range(rows - 1, -1, -1):
+        # taking one by one row from img matrix and marking kth position in a
+        # row
+        img[i, k] = [255, 0, 0]
+        if i != 0:
+            if k == 1:
+                if sOfIJ[i - 1, k + 1] < sOfIJ[i - 1, k]:
+                    k = k + 1
+            elif k == columns - 2:
+                if sOfIJ[i - 1, k - 1] < sOfIJ[i - 1, k]:
+                    k = k - 1
+            else:
+                if sOfIJ[i - 1, k - 1] < sOfIJ[i - 1, k] and sOfIJ[i - 1, k - 1] < sOfIJ[i - 1, k + 1]:
+                    k = k - 1
+                elif sOfIJ[i - 1, k + 1] < sOfIJ[i - 1, k] and sOfIJ[i - 1, k + 1] < sOfIJ[i - 1, k - 1]:
+                    k = k + 1
+
+    return img
+    pass
 
     def seam(self):
 	    img = imread('givenImg.png')
