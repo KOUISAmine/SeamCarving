@@ -107,15 +107,10 @@ class Traitement:
         if i != 0:
             if k == 1:
                 if sOfIJ[i - 1, k + 1] < sOfIJ[i - 1, k]:
-                    k = k + 1
+                    k = k - 1
             elif k == columns - 2:
                 if sOfIJ[i - 1, k - 1] < sOfIJ[i - 1, k]:
                     k = k - 1
-            else:
-                if sOfIJ[i - 1, k - 1] < sOfIJ[i - 1, k] and sOfIJ[i - 1, k - 1] < sOfIJ[i - 1, k + 1]:
-                    k = k - 1
-                elif sOfIJ[i - 1, k + 1] < sOfIJ[i - 1, k] and sOfIJ[i - 1, k + 1] < sOfIJ[i - 1, k - 1]:
-                    k = k + 1
 
     return img
     pass
