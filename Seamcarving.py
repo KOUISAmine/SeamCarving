@@ -115,6 +115,35 @@ class Traitement:
     return img
     pass
 
+def find_seam(img, energy):
+    minval = 1000
+    minIndex = 0
+    rows = energy.shape[0]
+    columns = energy.shape[1]
+    sOfIJ = np.zeros(shape=(rows, columns))  # initializing Si(J)
+    np.copyto(sOfIJ, energy)
+
+    for i in range(1, rows):  # building Si(j) top to bottom
+        for j in range(1, columns - 1):
+            if j == 1:
+                sOfIJ[i, j] = sOfIJ[i, j] + \
+                    min(sOfIJ[i - 1, j], sOfIJ[i - 1, j + 1])
+            elif j == columns - 2:
+                sOfIJ[i, j] = sOfIJ[i, j] + \
+                    min(sOfIJ[i - 1, j - 1], sOfIJ[i - 1, j])
+            else:
+                sOfIJ[i, j] = sOfIJ[i, j] + min(sOfIJ[i - 1, j - 1], sOfIJ[i- 1, j], sOfIJ[i - 1, j + 1])
+
+    lastRow = sOfIJ[rows - 1, :]
+    for p in range(1, columns - 1):  # taking last row and finding minimum
+        if lastRow[p] < minval:
+            minval = lastRow[p]
+            minIndex = p
+
+    return minval, minIndex, sOfIJ
+    pass
+	
+	
     def seam(self):
 	    img = imread('givenImg.png')
 		img = img_as_float(img)
