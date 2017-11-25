@@ -142,22 +142,6 @@ def find_seam(img, energy):
 
     return minval, minIndex, sOfIJ
     pass
-	
-	
-    def seam(self):
-	    img = imread('givenImg.png')
-		img = img_as_float(img)
-		subplot(1, 3, 1)
-		imshow(imread('givenImg.png'))
-		title('Given')
-		figure()
-		gray()
-        self.get_image()
-        tab = self.energy()
-        path = self.chemin(tab)
-        self.colpath(path)
-        self.__img.save("E:/tt.jpg")
-
 
 
 
