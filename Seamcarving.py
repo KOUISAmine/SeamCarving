@@ -84,16 +84,6 @@ class Traitement:
         return self.__img
 
 
-    def chemin(self,tab):
-        res=[]
-        xmin= tab[1].index(min(tab[1]))
-		xmax= tab[1].index(max(tab[1]))
-        res.append([xmin,1])
-        for i in range(2,len(tab)-1):
-            xmin=tab[i].index(min(tab[i][xmin-1],tab[i][xmin],tab[i][xmin+1]))
-            res.append([xmin,i])
-        return res
-
 		def plot_seam(img, minIndex, sOfIJ):
     rows = img.shape[0]
     columns = img.shape[1]
