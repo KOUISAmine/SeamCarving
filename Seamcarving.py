@@ -112,7 +112,14 @@ def find_seam(img, energy):
     columns = energy.shape[1]
     sOfIJ = np.zeros(shape=(rows, columns))  # initializing Si(J)
     np.copyto(sOfIJ, energy)
-
+    """
+    >>>img = imread('givenImg.png')
+    >>>img = img_as_float(img)
+    >>>energy=dual_gradient_energy(img)
+    >>>minval,minIndex,sOfIJ=find_seam(img,energy)
+    >>>print minval
+    0.488050766739
+    """
     for i in range(1, rows):  # building Si(j) top to bottom
         for j in range(1, columns - 1):
             if j == 1:
