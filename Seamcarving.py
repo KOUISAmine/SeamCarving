@@ -137,6 +137,13 @@ def find_seam(img, energy):
             minval = lastRow[p]
             minIndex = p
 
+			
+	    for i in range(50): #Delete 50 Seams
+        energy = dual_gradient_energy(img)
+        minval, minIndex, sOfIJ = find_seam(img, energy)
+        print minval
+        img = remove_seam(img, minIndex, sOfIJ)
+		
     return minval, minIndex, sOfIJ
     pass
 
