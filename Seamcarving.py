@@ -60,6 +60,9 @@ class Traitement:
 		columns = img.shape[1]
 		removed_matrix = np.zeros(shape=(rows, columns - 1, 3))
 		k = minIndex
+		energy = dual_gradient_energy(img)
+        minval, minIndex, sOfIJ = find_seam(img, energy)
+        img = plot_seam(img, minIndex, sOfIJ)
 		# backtracking from last row to first row
 		for i in range(rows - 1, -1, -1):
 			b = img[i, :, :]  # taking one by one row from img matrix
