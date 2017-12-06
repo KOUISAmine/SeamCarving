@@ -1,10 +1,10 @@
-from tkinter.filedialog import askopenfilename
-from PIL import Image
+import scipy
+import numpy as np
 from skimage import img_as_float
 from skimage import filter
-from math import *
-import numpy as np
+from pylab import *
 global q
+q = 0
 
 class Traitement:
     # les champs de la class :
