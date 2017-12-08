@@ -121,6 +121,8 @@ def find_seam(img, energy):
     >>>energy=dual_gradient_energy(img)
     >>>minval,minIndex,sOfIJ=find_seam(img,energy)
     >>>print minval
+	>>>print minIndex
+	>>>print sOfIJ
     0.488050766739
     """
     for i in range(1, rows):  # building Si(j) top to bottom
