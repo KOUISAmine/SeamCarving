@@ -137,7 +137,7 @@ def find_seam(img, energy):
                 sOfIJ[i, j] = sOfIJ[i, j] + min(sOfIJ[i - 1, j - 1], sOfIJ[i- 1, j], sOfIJ[i - 1, j + 1])
 
     lastRow = sOfIJ[rows - 1, :]
-    for p in range(1, columns - 1):  # taking last row and finding minimum
+    for p in range(1, columns):  # taking last row and finding minimum
         if lastRow[p] < minval:
             minval = lastRow[p]
             minIndex = p
