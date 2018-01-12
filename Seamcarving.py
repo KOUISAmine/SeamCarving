@@ -1,152 +1,153 @@
-import scipy
-import numpy as np
-from skimage import img_as_float
-from skimage import filter
-from pylab import *
-global q
-q = 0
+from PIL import Image
+from scipy.ndimage.filters import generic_gradient_magnitude, sobel
+import numpy
+
+def filter_gradient(img):
+    im=img.convert("F")
+    im_width, im_height = im.size
+    im_arr = numpy.reshape(im.getdata(), (im_height, im_width))
+    sobel_arr = generic_gradient_magnitude(im, derivative=sobel)
+    gradient = Image.new("F", im.size)
+    gradient.putdata(list(sobel_arr.flat))
+    return gradient
 
 
-def dual_gradient_energy(img):
-    R = img[:, :, 0]
-    G = img[:, :, 1]
-    B = img[:, :, 2]
+def img_transpose(im):
 
-    hR = filter.hsobel(R)
-    hG = filter.hsobel(G)
-    hB = filter.hsobel(B)
-
-    vR = filter.vsobel(R)
-    vG = filter.vsobel(G)
-    vB = filter.vsobel(B)
-
-    sumRG = np.add(np.square(hR), np.square(hG))
-    x_square = np.add(sumRG, np.square(hB))
-
-    sumRGv = np.add(np.square(vR), np.square(vG))
-    y_square = np.add(sumRGv, np.square(vB))
-
-    energy = np.add(x_square, y_square)
-    return energy
+    im_width, im_height = im.size
+    im_arr = numpy.reshape(im.getdata(), (im_height, im_width))
+    im_arr = numpy.transpose(im_arr)
+    im = Image.new(im.mode, (im_height, im_width))
+    im.putdata(list(im_arr.flat))
+    return im
 
 
-def find_seam(img, energy):
-    minval = 1000
-    minIndex = 0
-    rows = energy.shape[0]
-    columns = energy.shape[1]
-    sOfIJ = np.zeros(shape=(rows, columns))  # initializing Si(J)
-    np.copyto(sOfIJ, energy)
+def chercher_chemin_horizontal(im):
 
-    for i in range(1, rows):  # building Si(j) top to bottom
-        for j in range(1, columns - 1):
-            if j == 1:
-                sOfIJ[i, j] = sOfIJ[i, j] + \
-                    min(sOfIJ[i - 1, j], sOfIJ[i - 1, j + 1])
-            elif j == columns - 2:
-                sOfIJ[i, j] = sOfIJ[i, j] + \
-                    min(sOfIJ[i - 1, j - 1], sOfIJ[i - 1, j])
+# im est l'application du filter gradient sur l'image
+
+    im_width, im_height = im.size
+
+    cost = numpy.zeros(im.size)
+
+    im_arr = numpy.reshape(im.getdata(), (im_height, im_width))
+    im_arr = numpy.transpose(im_arr)
+    for y in range(im_height):
+        cost[0, y] = im_arr[0, y]
+
+
+    for x in range(1, im_width):
+
+        for y in range(im_height):
+            if y == 0:
+                min_val = min(cost[x - 1, y], cost[x - 1, y + 1])
+            elif y < im_height - 2:
+                min_val = min(cost[x - 1, y], cost[x - 1, y + 1])
+                min_val = min(min_val, cost[x - 1, y - 1])
             else:
-                sOfIJ[i, j] = sOfIJ[i, j] + min(sOfIJ[i - 1, j - 1], sOfIJ[i- 1, j], sOfIJ[i - 1, j + 1])
+                min_val = min(cost[x - 1, y], cost[x - 1, y - 1])
+            cost[x, y] = im_arr[x, y] + min_val
 
-    lastRow = sOfIJ[rows - 1, :]
-    for p in range(1, columns - 1):  # taking last row and finding minimum
-        if lastRow[p] < minval:
-            minval = lastRow[p]
-            minIndex = p
+    min_val = 1e1000
+    path = []
 
-    return minval, minIndex, sOfIJ
-    pass
+    for y in range(im_height):
+        if cost[im_width - 1, y] < min_val:
+            min_val = cost[im_width - 1, y]
+            min_ptr = y
 
+    pos = (im_width - 1, min_ptr)
+    path.append(pos)
 
-def plot_seam(img, minIndex, sOfIJ):
-    rows = img.shape[0]
-    columns = img.shape[1]
-    k = minIndex
-    sOfIJ[rows - 1, k] = 100
-    # backtracking from last row to first row
-    for i in range(rows - 1, -1, -1):
-        # taking one by one row from img matrix and marking kth position in a
-        # row
-        img[i, k] = [255, 0, 0]
-        if i != 0:
-            if k == 1:
-                if sOfIJ[i - 1, k + 1] < sOfIJ[i - 1, k]:
-                    k = k + 1
-            elif k == columns - 2:
-                if sOfIJ[i - 1, k - 1] < sOfIJ[i - 1, k]:
-                    k = k - 1
+    while pos[0] != 0:
+        val = cost[pos] - im_arr[pos]
+        x, y = pos
+        if y == 0:
+            if val == cost[x - 1, y + 1]:
+                pos = (x - 1, y + 1)
             else:
-                if sOfIJ[i - 1, k - 1] < sOfIJ[i - 1, k] and sOfIJ[i - 1, k - 1] < sOfIJ[i - 1, k + 1]:
-                    k = k - 1
-                elif sOfIJ[i - 1, k + 1] < sOfIJ[i - 1, k] and sOfIJ[i - 1, k + 1] < sOfIJ[i - 1, k - 1]:
-                    k = k + 1
-
-    return img
-    pass
-
-
-def remove_seam(img, minIndex, sOfIJ):
-    rows = img.shape[0]
-    columns = img.shape[1]
-    removed_matrix = np.zeros(shape=(rows, columns - 1, 3))
-    k = minIndex
-    # backtracking from last row to first row
-    for i in range(rows - 1, -1, -1):
-        b = img[i, :, :]  # taking one by one row from img matrix
-        # deleting kth position in a row
-        removed_matrix[i, :, :] = np.delete(b, k, axis=0)
-        if i != 0:
-            if k == 1:
-                if sOfIJ[i - 1, k + 1] < sOfIJ[i - 1, k]:
-                    k = k + 1
-            elif k == columns - 2:
-                if sOfIJ[i - 1, k - 1] < sOfIJ[i - 1, k]:
-                    k = k - 1
+                pos = (x - 1, y)
+        elif y < im_height - 2:
+            if val == cost[x - 1, y + 1]:
+                pos = (x - 1, y + 1)
+            elif val == cost[x - 1, y]:
+                pos = (x - 1, y)
             else:
-                if sOfIJ[i - 1, k - 1] < sOfIJ[i - 1, k] and sOfIJ[i - 1, k - 1] < sOfIJ[i - 1, k + 1]:
-                    k = k - 1
-                elif sOfIJ[i - 1, k + 1] < sOfIJ[i - 1, k] and sOfIJ[i - 1, k + 1] < sOfIJ[i - 1, k - 1]:
-                    k = k + 1
-    return removed_matrix
-    pass
+                pos = (x - 1, y - 1)
+        else:
+            if val == cost[x - 1, y]:
+                pos = (x - 1, y)
+            else:
+                pos = (x - 1, y - 1)
+
+        path.append(pos)
+
+    return path
 
 
-def main():
-    img = imread('givenImg.png')
-    img = img_as_float(img)
-    subplot(1, 3, 1)
-    imshow(imread('givenImg.png'))
-    title('Given')
-    figure()
-    gray()
-    """
-    >>>img = imread('givenImg.png')
-    >>>img = img_as_float(img)
-    >>>energy=dual_gradient_energy(img)
-    >>>minval,minIndex,sOfIJ=find_seam(img,energy)
-    >>>print minval
-    0.488050766739
-    """
-    for i in range(50): #Plot 50 Seams
-        energy = dual_gradient_energy(img)
-        minval, minIndex, sOfIJ = find_seam(img, energy)
-        img = plot_seam(img, minIndex, sOfIJ)
-    subplot(1, 3, 2)
-    imshow(img)
-    title('Seam Plot')
-    img = imread('givenImg.png')
-    img = img_as_float(img)
-    for i in range(50): #Delete 50 Seams
-        energy = dual_gradient_energy(img)
-        minval, minIndex, sOfIJ = find_seam(img, energy)
-        print minval
-        img = remove_seam(img, minIndex, sOfIJ)
-    subplot(1, 3, 3)
-    imshow(img)
-    title('Resized Image')
-    show()
-    pass
+def chercher_chemin_vertical(im):
+    # im est l'application du filter gradient sur l'image
+    im = img_transpose(im)
+    u = chercher_chemin_horizontal(im)
+    for i in range(len(u)):
+        temp = list(u[i])
+        temp.reverse()
+        u[i] = tuple(temp)
+    return u
 
-if __name__ == '__main__':
-    main()
+
+
+def supp_chemin_horizontal(img, path):
+
+    img_width, img_height = img.size
+    i = Image.new(img.mode, (img_width, img_height - 1))
+    input = img.load()
+    output = i.load()
+    path_set = set(path)
+    seen_set = set()
+    for y in range(img_height):
+        for x in range(img_width):
+            if (x, y) not in path_set and x not in seen_set:
+                output[x, y] = input[x, y]
+            elif (x, y) in path_set:
+                seen_set.add(x)
+            else:
+                output[x, y - 1] = input[x, y]
+
+    return i
+
+
+def supp_chemin_vertical(img, path):
+
+    img_width, img_height = img.size
+    i = Image.new(img.mode, (img_width - 1, img_height))
+    input = img.load()
+    output = i.load()
+    path_set = set(path)
+    seen_set = set()
+    for x in range(img_width):
+        for y in range(img_height):
+            if (x, y) not in path_set and y not in seen_set:
+                output[x, y] = input[x, y]
+            elif (x, y) in path_set:
+                seen_set.add(y)
+            else:
+                output[x - 1, y] = input[x, y]
+
+    return i
+
+def Run(input, resolution):
+
+    im_width, im_height = input.size
+
+    while im_width > resolution[0]:
+        u = chercher_chemin_vertical(filter_gradient(input))
+        input = supp_chemin_vertical(input, u)
+        im_width = input.size[0]
+
+    while im_height > resolution[1]:
+        v = chercher_chemin_horizontal(filter_gradient(input))
+        input = supp_chemin_horizontal(input, v)
+        im_height = input.size[1]
+
+    return input
